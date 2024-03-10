@@ -19,16 +19,21 @@ class PostController extends Controller
         return response()->json(['message' => 'Pomyślnie dodano post']);
     }
 
-    public function getAll()
+    public function getAll(Request $request)
     {
         try {
-            $posts = Post::all();
-            $posts->transform(function ($post) {
+            $page = $request->query('page', 1);
+
+            $posts = Post::paginate(10, ['*'], 'page', $page);
+
+            $posts->getCollection()->transform(function ($post) {
                 $post->author = json_decode($post->author, true);
                 $likesCount = $post->likes()->count();
                 $likesPeople = $post->likes()->take(3)->get();
                 $commentsCount = $post->comments()->count();
                 $firstComment = $post->comments()->first();
+
+                $isLikedByMe = $post->likes()->where('user_id', Auth::user()->id)->exists();
 
                 $firstThreeNames = $likesPeople->map(function ($like) {
                     return $like->user_name;
@@ -38,6 +43,7 @@ class PostController extends Controller
                 $post->first_three_names = $firstThreeNames;
                 $post->comments_count = $commentsCount;
                 $post->firstcomment = $firstComment;
+                $post->is_liked_by_me = $isLikedByMe;
                 return $post;
             });
 
@@ -46,6 +52,34 @@ class PostController extends Controller
             return response()->json(['error' => $e->getMessage()], 404);
         }
     }
+
+    // public function getAll()
+    // {
+    //     try {
+    //         $posts = Post::all();
+    //         $posts->transform(function ($post) {
+    //             $post->author = json_decode($post->author, true);
+    //             $likesCount = $post->likes()->count();
+    //             $likesPeople = $post->likes()->take(3)->get();
+    //             $commentsCount = $post->comments()->count();
+    //             $firstComment = $post->comments()->first();
+
+    //             $firstThreeNames = $likesPeople->map(function ($like) {
+    //                 return $like->user_name;
+    //             });
+
+    //             $post->likes_count = $likesCount;
+    //             $post->first_three_names = $firstThreeNames;
+    //             $post->comments_count = $commentsCount;
+    //             $post->firstcomment = $firstComment;
+    //             return $post;
+    //         });
+
+    //         return response()->json($posts);
+    //     } catch (\Exception $e) {
+    //         return response()->json(['error' => $e->getMessage()], 404);
+    //     }
+    // }
 
     public function show($id)
     {
