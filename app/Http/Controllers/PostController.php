@@ -31,7 +31,7 @@ class PostController extends Controller
                 $likesCount = $post->likes()->count();
                 $likesPeople = $post->likes()->take(3)->get();
                 $commentsCount = $post->comments()->count();
-                $firstComment = $post->comments()->first();
+                $firstComment = $post->comments()->latest()->first();
 
                 $isLikedByMe = $post->likes()->where('user_id', Auth::user()->id)->exists();
 

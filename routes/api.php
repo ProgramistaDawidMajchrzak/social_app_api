@@ -52,4 +52,11 @@ Route::group(['middleware' => ['auth:api']], function () {
         Route::post('/add/{post_id}', [CommentsController::class, 'add']);
         Route::delete('/{comment_id}', [CommentsController::class, 'delete']);
     });
+    Route::group(['middleware' => 'api', 'prefix' => 'friends'], function () {
+        Route::get('/', [UserController::class, 'getMyFriends']);
+        Route::get('/invitations', [UserController::class, 'getMyInvitations']);
+        Route::post('/add/{friend_id}', [UserController::class, 'sendFriendRequest']);
+        Route::post('/{invitation_id}', [UserController::class, 'acceptFriendRequest']);
+        Route::delete('/{invitation_id}', [UserController::class, 'cancelFriendRequest']);
+    });
 });

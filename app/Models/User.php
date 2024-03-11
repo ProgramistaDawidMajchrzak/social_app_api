@@ -44,6 +44,16 @@ class User extends Authenticatable implements JWTSubject
         'password' => 'hashed',
     ];
 
+    public function hasSentFriendRequestTo(User $recipient)
+    {
+        return $this->sentFriendRequests()->where('recipient_id', $recipient->id)->exists();
+    }
+
+    public function sentFriendRequests()
+    {
+        return $this->hasMany(FriendRequest::class, 'sender_id');
+    }
+
     public function getJWTIdentifier()
     {
         return $this->getKey();
