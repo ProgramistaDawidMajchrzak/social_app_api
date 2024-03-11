@@ -13,6 +13,7 @@ class FriendRequest extends Model
         'sender_id',
         'recipient_id',
         'status',
+        'friend_id'
     ];
 
     public function sender()
@@ -23,5 +24,9 @@ class FriendRequest extends Model
     public function recipient()
     {
         return $this->belongsTo(User::class, 'recipient_id');
+    }
+    public function friend()
+    {
+        return $this->belongsTo(User::class, 'friend_id'); // Relacja friend jako id znajomego
     }
 }

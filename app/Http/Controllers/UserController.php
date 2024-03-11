@@ -139,9 +139,6 @@ class UserController extends Controller
         try {
             $user_id = Auth::user()->id;
 
-            // $invitations = FriendRequest::where('recipient_id', $user_id)
-            //     ->where('status', 'pending')
-            //     ->get();
             $invitations = FriendRequest::where('recipient_id', $user_id)
                 ->where('status', 'pending')
                 ->with('sender')
@@ -171,6 +168,7 @@ class UserController extends Controller
                     $query->where('sender_id', $user_id)
                         ->orWhere('recipient_id', $user_id);
                 })
+                ->with(['sender', 'recipient'])
                 ->get();
 
             return response()->json([
