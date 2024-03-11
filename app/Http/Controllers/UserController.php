@@ -139,9 +139,18 @@ class UserController extends Controller
         try {
             $user_id = Auth::user()->id;
 
+            // $invitations = FriendRequest::where('recipient_id', $user_id)
+            //     ->where('status', 'pending')
+            //     ->get();
             $invitations = FriendRequest::where('recipient_id', $user_id)
                 ->where('status', 'pending')
+                ->with('sender')
                 ->get();
+
+            $invitations->transform(function ($invitation) {
+                $invitation->sender = $invitation->sender;
+                return $invitation;
+            });
 
             return response()->json([
                 'error' => false,
