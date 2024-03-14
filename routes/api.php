@@ -33,6 +33,7 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function () {
 Route::group(['middleware' => ['auth:api']], function () {
 
     Route::post('user/update', [UserController::class, 'updateInfo']);
+    Route::get('user/all', [UserController::class, 'getPeople']);
 
     Route::group(['middleware' => 'api', 'prefix' => 'posts'], function () {
         Route::post('/add', [PostController::class, 'add']);

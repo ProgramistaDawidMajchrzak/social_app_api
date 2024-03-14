@@ -47,6 +47,49 @@ class UserController extends Controller
         }
     }
 
+    public function getPeople()
+    {
+        try {
+            $user_id = Auth::user()->id;
+            $people = User::where('id', '!=', $user_id)->get();
+
+            $friendRequests = FriendRequest::where(function ($query) use ($user_id) {
+                $query->where('sender_id', $user_id)
+                    ->orWhere('recipient_id', $user_id);
+            })
+                ->get();
+
+            $friendshipIds = [];
+
+            foreach ($people as $person) {
+                $friendshipId = null;
+                foreach ($friendRequests as $request) {
+                    if ($request->sender_id == $user_id && $request->recipient_id == $person->id) {
+                        $friendshipId = $request->id;
+                        break;
+                    } elseif ($request->recipient_id == $user_id && $request->sender_id == $person->id) {
+                        $friendshipId = $request->id;
+                        break;
+                    }
+                }
+
+                $friendshipIds[$person->id] = $friendshipId;
+            }
+
+            foreach ($people as $person) {
+                $person->friendship_id = $friendshipIds[$person->id];
+                $person->status = FriendRequest::where('id', $friendshipIds[$person->id])->get();
+            }
+
+            return response()->json([
+                'error' => false,
+                'people' => $people
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
     public function sendFriendRequest($friend_id)
     {
         try {
