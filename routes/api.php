@@ -32,14 +32,18 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function () {
 
 Route::group(['middleware' => ['auth:api']], function () {
 
-    Route::post('user/update', [UserController::class, 'updateInfo']);
-    Route::get('user/all', [UserController::class, 'getPeople']);
+    Route::group(['middleware' => 'api', 'prefix' => 'user'], function () {
+        Route::post('/update', [UserController::class, 'updateInfo']);
+        Route::get('/all', [UserController::class, 'getPeople']);
+        Route::get('/{id}', [UserController::class, 'getUserInfo']);
+    });
 
     Route::group(['middleware' => 'api', 'prefix' => 'posts'], function () {
         Route::post('/add', [PostController::class, 'add']);
         Route::post('/edit/{id}', [PostController::class, 'edit']);
         Route::get('/', [PostController::class, 'getAll']);
         Route::get('/{id}', [PostController::class, 'show']);
+        Route::get('/by-user/{id}', [PostController::class, 'getAllPostsByUser']);
         Route::delete('/{id}', [PostController::class, 'delete']);
     });
 
@@ -56,6 +60,7 @@ Route::group(['middleware' => ['auth:api']], function () {
     Route::group(['middleware' => 'api', 'prefix' => 'friends'], function () {
         Route::get('/', [UserController::class, 'getMyFriends']);
         Route::get('/invitations', [UserController::class, 'getMyInvitations']);
+        Route::get('/sent-invitations', [UserController::class, 'getSentInvitations']);
         Route::post('/add/{friend_id}', [UserController::class, 'sendFriendRequest']);
         Route::post('/{invitation_id}', [UserController::class, 'acceptFriendRequest']);
         Route::delete('/{invitation_id}', [UserController::class, 'cancelFriendRequest']);

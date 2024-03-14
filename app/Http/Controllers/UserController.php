@@ -2,15 +2,30 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\FriendRequest;
+use App\Models\Post;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Models\FriendRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
+    public function getUserInfo($user_id)
+    {
+        try {
+            $user = User::where('id', $user_id)->get()->first();
+
+            return response()->json([
+                'error' => false,
+                'user' => $user,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 404);
+        }
+    }
+
     public function updateInfo(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -217,6 +232,30 @@ class UserController extends Controller
             return response()->json([
                 'error' => false,
                 'friends' => $friends
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getSentInvitations()
+    {
+        try {
+            $user_id = Auth::user()->id;
+
+            $invitations = FriendRequest::where('sender_id', $user_id)
+                ->where('status', 'pending')
+                ->with('sender')
+                ->get();
+
+            $invitations->transform(function ($invitation) {
+                $invitation->recipient = $invitation->recipient;
+                return $invitation;
+            });
+
+            return response()->json([
+                'error' => false,
+                'invitations' => $invitations
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
