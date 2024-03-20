@@ -238,6 +238,28 @@ class UserController extends Controller
         }
     }
 
+    public function getUserFriends($user_id)
+    {
+        try {
+            // $user_id = Auth::user()->id;
+
+            $friends = FriendRequest::where('status', 'accepted')
+                ->where(function ($query) use ($user_id) {
+                    $query->where('sender_id', $user_id)
+                        ->orWhere('recipient_id', $user_id);
+                })
+                ->with(['sender', 'recipient'])
+                ->get();
+
+            return response()->json([
+                'error' => false,
+                'friends' => $friends
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
     public function getSentInvitations()
     {
         try {

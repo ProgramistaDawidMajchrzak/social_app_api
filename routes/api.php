@@ -59,6 +59,7 @@ Route::group(['middleware' => ['auth:api']], function () {
     });
     Route::group(['middleware' => 'api', 'prefix' => 'friends'], function () {
         Route::get('/', [UserController::class, 'getMyFriends']);
+        Route::get('/by-user/{user_id}', [UserController::class, 'getUserFriends']);
         Route::get('/invitations', [UserController::class, 'getMyInvitations']);
         Route::get('/sent-invitations', [UserController::class, 'getSentInvitations']);
         Route::post('/add/{friend_id}', [UserController::class, 'sendFriendRequest']);

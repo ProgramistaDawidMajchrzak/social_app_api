@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class PostController extends Controller
 {
@@ -22,9 +23,35 @@ class PostController extends Controller
     public function getAll(Request $request)
     {
         try {
-            $page = $request->query('page', 1);
+            // $page = $request->query('page', 1);
 
-            $posts = Post::paginate(10, ['*'], 'page', $page);
+            // $allPosts = Post::get()->reverse()->values()->toArray();
+
+            // $posts = $allPosts::paginate(10, ['*'], 'page', $page);
+
+            $page = $request->query('page', 1);
+            $perPage = 10;
+
+            // Pobierz wszystkie posty w odwrotnej kolejności
+            $allPosts = Post::get()->reverse();
+
+            // Przeprowadź paginację
+            $currentPageItems = $allPosts->slice(($page - 1) * $perPage, $perPage)->values();
+            $posts = new LengthAwarePaginator(
+                $currentPageItems,
+                $allPosts->count(),
+                $perPage,
+                $page,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
+            // $page = $request->query('page', 1);
+
+            // // Pobierz wszystkie posty w odwrotnej kolejności
+            // $allPosts = Post::get()->reverse()->values();
+
+            // // Przeprowadź paginację
+            // $posts = $allPosts->paginate(10, ['*'], 'page', $page);
 
             $posts->getCollection()->transform(function ($post) {
                 $post->author = json_decode($post->author, true);
@@ -46,6 +73,8 @@ class PostController extends Controller
                 $post->is_liked_by_me = $isLikedByMe;
                 return $post;
             });
+
+            //$posts = $posts->reverse();
 
             return response()->json($posts);
         } catch (\Exception $e) {
