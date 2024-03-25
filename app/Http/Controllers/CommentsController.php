@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Models\User;
 use App\Models\Comments;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,12 @@ class CommentsController extends Controller
         try {
             $post = Post::findOrFail($postId);
             $comments = $post->comments()->get();
+
+            $comments->transform(function ($comment) {
+                $commentUser = User::find($comment->user_id);
+                $comment->comment_user_profile_photo = $commentUser ? $commentUser->profile_photo : null;
+                return $comment;
+            });
 
             return response()->json($comments);
         } catch (\Exception $e) {

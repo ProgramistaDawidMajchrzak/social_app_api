@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -13,6 +14,9 @@ class PostController extends Controller
     {
         $post = new Post();
         $post->author = auth()->user();
+        $post->author_id = auth()->user()->id;
+        $post->author_name = auth()->user()->name;
+        $post->author_profile_photo = auth()->user()->profile_photo;
         $post->title = $request->title;
         $post->description = $request->description;
         $post->save();
@@ -23,19 +27,10 @@ class PostController extends Controller
     public function getAll(Request $request)
     {
         try {
-            // $page = $request->query('page', 1);
-
-            // $allPosts = Post::get()->reverse()->values()->toArray();
-
-            // $posts = $allPosts::paginate(10, ['*'], 'page', $page);
-
             $page = $request->query('page', 1);
             $perPage = 10;
+            $allPosts = Post::with('author')->get()->reverse();
 
-            // Pobierz wszystkie posty w odwrotnej kolejności
-            $allPosts = Post::get()->reverse();
-
-            // Przeprowadź paginację
             $currentPageItems = $allPosts->slice(($page - 1) * $perPage, $perPage)->values();
             $posts = new LengthAwarePaginator(
                 $currentPageItems,
@@ -45,20 +40,21 @@ class PostController extends Controller
                 ['path' => $request->url(), 'query' => $request->query()]
             );
 
-            // $page = $request->query('page', 1);
-
-            // // Pobierz wszystkie posty w odwrotnej kolejności
-            // $allPosts = Post::get()->reverse()->values();
-
-            // // Przeprowadź paginację
-            // $posts = $allPosts->paginate(10, ['*'], 'page', $page);
 
             $posts->getCollection()->transform(function ($post) {
-                $post->author = json_decode($post->author, true);
+                // $post->author_id = $post->author_id;
+                // $post->author_name = $post->author_name;
+                // $post->author_profile_photo = $post->author_profile_photo;
                 $likesCount = $post->likes()->count();
                 $likesPeople = $post->likes()->take(3)->get();
                 $commentsCount = $post->comments()->count();
                 $firstComment = $post->comments()->latest()->first();
+                if ($firstComment) {
+                    $firstCommentUser = User::find($firstComment->user_id);
+                    $post->first_comment_user_profile_photo = $firstCommentUser->profile_photo;
+                } else {
+                    $post->first_comment_user_profile_photo = null;
+                }
 
                 $isLikedByMe = $post->likes()->where('user_id', Auth::user()->id)->exists();
 
@@ -89,11 +85,19 @@ class PostController extends Controller
             $posts = Post::where('author->id', $user_id)->paginate(10, ['*'], 'page', $page);
 
             $posts->getCollection()->transform(function ($post) {
-                $post->author = json_decode($post->author, true);
+                // $post->author_id = $post->author_id;
+                // $post->author_name = $post->author_name;
+                // $post->author_profile_photo = $post->author_profile_photo;
                 $likesCount = $post->likes()->count();
                 $likesPeople = $post->likes()->take(3)->get();
                 $commentsCount = $post->comments()->count();
                 $firstComment = $post->comments()->latest()->first();
+                if ($firstComment) {
+                    $firstCommentUser = User::find($firstComment->user_id);
+                    $post->first_comment_user_profile_photo = $firstCommentUser->profile_photo;
+                } else {
+                    $post->first_comment_user_profile_photo = null;
+                }
 
                 $isLikedByMe = $post->likes()->where('user_id', Auth::user()->id)->exists();
 

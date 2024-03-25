@@ -38,32 +38,6 @@ class AuthController extends Controller
         ], JsonResponse::HTTP_CREATED);
     }
 
-    // public function login(Request $request)
-    // {
-    //     $validator = Validator::make($request->all(), [
-    //         'email' => 'required|email',
-    //         'password' => 'required|string|min:8'
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         //return response()->json($validator->errors()->toJson(), 400);
-    //         return response()->json($validator->errors(), JsonResponse::HTTP_BAD_REQUEST);
-    //     }
-    //     if (!$token = auth()->attempt($validator->validated())) {
-    //         return response()->json(['error' => 'Unauthorized'], 401);
-    //     }
-    //     return $this->createNewToken($token);
-    // }
-
-
-    // public function createNewToken($token)
-    // {
-    //     return response()->json([
-    //         'access_token' => $token,
-    //         'user' => auth()->user()
-    //     ]);
-    // }
-
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [

@@ -36,6 +36,7 @@ Route::group(['middleware' => ['auth:api']], function () {
         Route::post('/update', [UserController::class, 'updateInfo']);
         Route::get('/all', [UserController::class, 'getPeople']);
         Route::get('/{id}', [UserController::class, 'getUserInfo']);
+        Route::post('/change-photo', [UserController::class, 'updateProfilePhoto']);
     });
 
     Route::group(['middleware' => 'api', 'prefix' => 'posts'], function () {

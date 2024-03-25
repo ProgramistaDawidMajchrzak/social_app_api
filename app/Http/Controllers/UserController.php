@@ -28,39 +28,21 @@ class UserController extends Controller
 
     public function updateInfo(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'string|max:50',
-            'profile_photo' => 'image|mimes:jpeg,png,jpg|max:2048',
-            'about' => 'string|max:500'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), JsonResponse::HTTP_BAD_REQUEST);
-        }
         try {
-            $user = User::findOrFail(Auth::user()->id);
-
-            if ($request->has('name')) {
-                $user->name = $request->input('name');
-            }
-            if ($request->has('about')) {
-                $user->about = $request->input('about');
-            }
-
-            if ($request->hasFile('profile_photo')) {
-                $photo = $request->file('profile_photo');
-                $path = $photo->store('public/');
-                $user->profile_photo = $path;
-            }
+            $user_id = Auth::user()->id;
+            $about = $request->input('about');
+            $user = User::findOrFail($user_id);
+            $user->about = $about;
             $user->save();
             return response()->json([
                 'error' => false,
-                'message' => 'Pomyślnie edytowano dane'
+                'message' => 'User about updated successfully.'
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 404);
         }
     }
+
 
     public function getPeople()
     {
@@ -282,5 +264,33 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
+    }
+
+    public function updateProfilePhoto(Request $request)
+    {
+        try {
+            $user = User::findOrFail(Auth::user()->id);
+
+            if ($request->hasFile('profile_photo')) {
+                $profilePhoto = $request->file('profile_photo');
+                $photoPath = $profilePhoto->store('profile_photos', 'public');
+                $user->profile_photo = $photoPath;
+                $user->save();
+
+                $posts = Post::where('author->id', $user->id)->get();
+
+                foreach ($posts as $post) {
+                    //$post->author_name = $user->name;
+                    $post->author_profile_photo = $photoPath;
+                    $post->save();
+                }
+                return response()->json(['message' => 'Profile photo updated successfully', 'profile_photo' => asset('storage/' . $photoPath)]);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 404);
+        }
+
+
+        return response()->json(['error' => 'No profile photo uploaded'], 400);
     }
 }
